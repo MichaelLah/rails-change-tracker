@@ -2,6 +2,7 @@
 
 #/Users/michaellah/Documents/GitHub/beam-api/app/models/application_record.rb
 beam_api_dir='/Users/michaellah/Documents/GitHub/beam-api'
+tracker_dir='/Users/michaellah/Documents/GitHub/rails-change-tracker'
 mysql_prefix="mysql -h 0.0.0.0 -P 3306 -u root -e"
 #mysql_prefix2=$(mysql -h 0.0.0.0 -P 3306 -u root -e)
 tracking_table="tracking"
@@ -12,12 +13,21 @@ print_usage() {
 }
 
 start_tracking() {
-  cp ruby_files/tracking/application_record.rb $beam_api_dir/app/models/application_record.rb
-  mysql -h 0.0.0.0 -P 3306 -u root -e "CREATE TABLE IF NOT EXISTS $currnet_db.$tracking_table (table_name varchar(60), object_id varchar(255), changes json)"
+  echo "replacing application_record.rb"
+  cp $tracker_dir/src/ruby_files/tracking/application_record.rb $beam_api_dir/app/models/application_record.rb
+  echo "creating tracking table."
+  mysql -h 0.0.0.0 -P 3306 -u root -e "CREATE TABLE IF NOT EXISTS $currnet_db.$tracking_table (id int NOT NULL AUTO_INCREMENT, table_name varchar(60), action varchar(20) ,object_id varchar(255), changes json, PRIMARY KEY (id))"
 }
 stop_tracking() {
-  cp ruby_files/default/application_record.rb $beam_api_dir/app/models/application_record.rb
+  echo "resetting application_record.rb"
+  cp $tracker_dir/src/ruby_files/default/application_record.rb $beam_api_dir/app/models/application_record.rb
+  echo "dropping tracking table"
   mysql -h 0.0.0.0 -P 3306 -u root -e "DROP TABLE IF EXISTS $currnet_db.$tracking_table"
+}
+
+reset_tracking() {
+  echo "clearning tracking table."
+  mysql -h 0.0.0.0 -P 3306 -u root -e "TRUNCATE TABLE $currnet_db.$tracking_table"
 }
 #echo $currnet_db
 #stop_tracking
@@ -30,6 +40,9 @@ case $1 in
   ;;
 "stop")
   stop_tracking
+  ;;
+"reset")
+  reset_tracking
   ;;
 *)
   print_usage
