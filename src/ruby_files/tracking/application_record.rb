@@ -1,6 +1,6 @@
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
-  after_update do |klass|
+  after_update do |model|
     ActiveRecord::Base.connection.execute("INSERT INTO tracking (table_name, action, object_id, changes) VALUES ('#{model.class.table_name}', 'UPDATE','#{model.id}', '#{model.saved_changes.to_json.gsub("'", %q(\\\')).gsub('\n','')}')")
   end
   after_create do |model|
