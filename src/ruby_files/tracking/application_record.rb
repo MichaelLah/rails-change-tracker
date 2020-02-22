@@ -1,7 +1,7 @@
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
   after_update do |model|
-    add_entry(model.class.table_name, 'CREATE', model.id, model.saved_changes.to_json.gsub("'", %q(\\\')).gsub('\n',''))
+    add_entry(model.class.table_name, 'UPDATE', model.id, model.saved_changes.to_json.gsub("'", %q(\\\')).gsub('\n',''))
   end
   after_create do |model|
     add_entry(model.class.table_name, 'CREATE', model.id, model.to_json.gsub("'", %q(\\\')).gsub('\n',''))
