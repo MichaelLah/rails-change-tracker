@@ -44,6 +44,9 @@ init() {
 
 setup() {
   # setup beam-api location
+  if [ ! -d config ]; then
+    mkdir config
+  fi
   if [ ! -f "$rails_path_file" ]; then
     touch "$rails_path_file"
   fi 
