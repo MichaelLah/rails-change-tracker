@@ -1,15 +1,13 @@
 #!/bin/zsh
 
-#/Users/michaellah/Documents/GitHub/beam-api/app/models/application_record.rb
-beam_api_dir='/Users/michaellah/Documents/GitHub/beam-api'
-tracker_dir='/Users/michaellah/Documents/GitHub/rails-change-tracker'
-mysql_prefix="mysql -h 0.0.0.0 -P 3306 -u root -e"
-#mysql_prefix2=$(mysql -h 0.0.0.0 -P 3306 -u root -e)
 tracking_table="tracking"
-currnet_db=$(head -n 1 $beam_api_dir/.development_mysql_override)
-
 rails_path_file=config/rails_path.txt
 tracker_path_file=config/tracker_path.txt
+# beam_api_dir='/Users/michaellah/Documents/GitHub/beam-api'
+# tracker_dir='/Users/michaellah/Documents/GitHub/rails-change-tracker'
+beam_api_dir=""
+tracker_dir=""
+currnet_db=""
 
 print_usage() {
   echo "Usage:"
@@ -19,12 +17,14 @@ print_usage() {
 }
 
 start_tracking() {
+  init
   echo "replacing application_record.rb"
   cp $tracker_dir/src/ruby_files/tracking/application_record.rb $beam_api_dir/app/models/application_record.rb
   echo "creating tracking table."
   mysql -h 0.0.0.0 -P 3306 -u root -e "CREATE TABLE IF NOT EXISTS $currnet_db.$tracking_table (id int NOT NULL AUTO_INCREMENT, table_name varchar(60), action varchar(20) ,object_id varchar(255), changes json, PRIMARY KEY (id))"
 }
 stop_tracking() {
+  init
   echo "resetting application_record.rb"
   cp $tracker_dir/src/ruby_files/default/application_record.rb $beam_api_dir/app/models/application_record.rb
   echo "dropping tracking table"
@@ -37,6 +37,12 @@ reset_tracking() {
 }
 
 init() {
+  beam_api_dir=$(head -n 1 $rails_path_file)
+  tracker_dir=$(head -n 1 $tracker_path_file)
+  currnet_db=$(head -n 1 $beam_api_dir/.development_mysql_override)
+}
+
+setup() {
   # setup beam-api location
   if [ ! -f "$rails_path_file" ]; then
     touch "$rails_path_file"
@@ -69,8 +75,8 @@ case $1 in
 "reset")
   reset_tracking
   ;;
-"init")
-  init
+"setup")
+  setup
   ;;
 *)
   print_usage
